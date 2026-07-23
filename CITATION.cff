@@ -4,15 +4,15 @@ message: "If you use this software, please cite it as below."
 type: software
 authors:
   - given-names: "Nesma"
-    family-names: "FAMILY-NAME-HERE"      # <-- fill in
+    family-names: "Ait Belkacem"      # <-- fill in
     affiliation: "Microbial Ecology & Environmental Genomics Lab, Department of Biology, United Arab Emirates University"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"   # <-- optional, add if you have one
+    # orcid: "https://orcid.org/0009-0002-5110-5921"   
   - given-names: "Sunil"
     family-names: "Mundra"
     affiliation: "Microbial Ecology & Environmental Genomics Lab, Department of Biology, United Arab Emirates University"
-    # orcid: "https://orcid.org/0000-0000-0000-0000"   # <-- optional
+    # orcid: "https://orcid.org/0000-0002-0535-118X"   
 repository-code: "https://github.com/meeg-lab/research-tracker"
-url: "https://meeg-lab.github.io/research-tracker/"
+url: "https://meeg-lab.github.io/tools/"
 abstract: >-
   A single-file, browser-based tool for tracking research projects as ordered
   pipeline stages, recording the software used at each step, managing milestones,
@@ -23,8 +23,10 @@ keywords:
   - project tracking
   - reproducibility
   - bioinformatics
+  - ecology
+  - microbial ecology
   - literature management
   - open source
 license: MIT
 version: "1.0.0"
-date-released: "2026-07-22"      # <-- update at each release
+date-released: "2026-07-23"      
