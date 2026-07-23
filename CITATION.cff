@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: "Research Tracker: a single-file browser tool for tracking research projects, workflows, and literature"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - given-names: "Nesma"
+    family-names: "FAMILY-NAME-HERE"      # <-- fill in
+    affiliation: "Microbial Ecology & Environmental Genomics Lab, Department of Biology, United Arab Emirates University"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   # <-- optional, add if you have one
+  - given-names: "Sunil"
+    family-names: "Mundra"
+    affiliation: "Microbial Ecology & Environmental Genomics Lab, Department of Biology, United Arab Emirates University"
+    # orcid: "https://orcid.org/0000-0000-0000-0000"   # <-- optional
+repository-code: "https://github.com/meeg-lab/research-tracker"
+url: "https://meeg-lab.github.io/research-tracker/"
+abstract: >-
+  A single-file, browser-based tool for tracking research projects as ordered
+  pipeline stages, recording the software used at each step, managing milestones,
+  and maintaining a searchable literature log with CrossRef DOI lookup. Runs
+  entirely client-side with no install, no server, and no data transmission.
+keywords:
+  - research management
+  - project tracking
+  - reproducibility
+  - bioinformatics
+  - literature management
+  - open source
+license: MIT
+version: "1.0.0"
+date-released: "2026-07-22"      # <-- update at each release
