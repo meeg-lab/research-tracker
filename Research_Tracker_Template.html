@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Research tracker</title>
+<style>
+  :root{
+    --ink:#16242B; --inkSoft:#5A6D74; --faint:#8FA09A; --line:#CBD5CE;
+    --base:#E3E9E3; --surface:#F8FAF7;
+    --teal:#14776A; --amber:#B0721A; --plum:#8A3D63; --idle:#C2CCC5;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--base);color:var(--ink);font-family:var(--sans)}
+  .wrap{max-width:1000px;margin:0 auto;padding:30px 20px 60px}
+  header{display:flex;justify-content:space-between;align-items:flex-end;
+    flex-wrap:wrap;gap:16px;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--faint)}
+  h1{font-family:var(--serif);font-size:32px;line-height:1.1;margin:2px 0 0}
+  .stats{display:flex;gap:20px;font-family:var(--mono)}
+  .stat b{display:block;font-size:20px;font-weight:400}
+  .stat span{font-size:9px;letter-spacing:.14em;color:var(--faint)}
+  .tabs{display:flex;gap:2px;margin:18px 0 0}
+  .tab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:7px 14px;
+    border:1px solid var(--line);border-bottom:0;background:transparent;cursor:pointer;
+    color:var(--inkSoft);border-radius:3px 3px 0 0}
+  .tab.on{background:var(--surface);color:var(--ink)}
+  .sheet{border:1px solid var(--line);background:var(--surface);
+    border-radius:0 3px 3px 3px;padding:0 0 4px}
+  .grouphead{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--faint);
+    padding:16px 18px 6px;text-transform:uppercase}
+  .lane{padding:14px 18px;border-top:1px solid var(--line)}
+  .lane.active{background:#fff}
+  .lane-head{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:7px}
+  .pname{font-family:var(--serif);font-size:18px;background:none;border:0;padding:0;
+    cursor:pointer;color:var(--ink);text-align:left}
+  .pname:hover{text-decoration:underline}
+  .meta{font-family:var(--mono);font-size:10px;letter-spacing:.09em;color:var(--faint)}
+  .pct{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--inkSoft)}
+  .track{display:flex;overflow-x:auto}
+  .seg{flex:1;min-width:78px;height:56px;border:0;position:relative;cursor:pointer;
+    padding:0;border-right:1px solid var(--surface);transition:transform .12s}
+  .seg:last-child{border-right:0}
+  .seg:hover{transform:translateY(-1px)}
+  .seg:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+  .seg span{position:absolute;left:0;right:0;padding:0 4px;overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap;font-family:var(--mono)}
+  .seg .lab{top:7px;font-size:8.5px;letter-spacing:.05em}
+  .seg .tool{top:24px;font-size:8px;opacity:.8;font-style:italic}
+  .seg .t{bottom:6px;font-size:9px}
+  .stripe::after{content:"";position:absolute;inset:0;
+    background-image:repeating-linear-gradient(115deg,rgba(255,255,255,.26) 0 6px,transparent 6px 14px);
+    animation:slide 1.6s linear infinite}
+  @keyframes slide{to{background-position:28px 0}}
+  @media (prefers-reduced-motion:reduce){.stripe::after{animation:none}}
+  .flags{display:flex;gap:16px;flex-wrap:wrap;margin-top:7px;font-family:var(--mono);font-size:11px}
+  .nowsec{padding:6px 18px 14px}
+  .nowrow{display:flex;align-items:baseline;gap:10px;padding:7px 0;
+    border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .nowrow .st{font-family:var(--mono);font-size:11px;color:var(--inkSoft)}
+  .nowrow .r{margin-left:auto;font-family:var(--mono);font-size:11px}
+  .panel{margin:18px 0 0;padding:20px;background:#fff;border:1px solid var(--line);border-radius:3px}
+  textarea,input,select{font-family:var(--sans);border:1px solid var(--line);background:#fff;
+    border-radius:3px;padding:8px;color:var(--ink);font-size:13px}
+  textarea{width:100%;line-height:1.5;resize:vertical}
+  h3{font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--faint);
+    margin:22px 0 8px;font-weight:400}
+  table.stab{width:100%;border-collapse:collapse}
+  table.stab td{padding:6px 6px 6px 0;border-bottom:1px solid var(--line);font-size:13px;
+    vertical-align:middle}
+  table.stab td.sw{font-family:var(--mono);font-size:11px;color:var(--inkSoft);cursor:text}
+  table.stab td.sw.none{color:var(--faint);font-style:italic}
+  table.stab td.el{font-family:var(--mono);font-size:11px;color:var(--inkSoft);width:52px}
+  table.stab td.dt{width:22px}
+  table.stab td.mv{width:34px;white-space:nowrap}
+  table.stab td.mv button{font-family:var(--mono);font-size:11px;color:var(--faint);
+    background:none;border:0;cursor:pointer;padding:0 1px;line-height:1}
+  table.stab td.mv button:hover{color:var(--ink)}
+  table.stab tr[draggable]{cursor:grab}
+  table.stab tr.dragging{opacity:.4}
+  table.stab tr.over td{border-top:2px solid var(--ink)}
+  table.stab td.x{width:22px;text-align:right}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .dotbtn{background:none;border:0;padding:0;cursor:pointer;line-height:0}
+  .ms{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .ms input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);cursor:pointer}
+  .ms .txt{flex:1;font-size:13px}
+  .ms.done .txt{color:var(--faint);text-decoration:line-through}
+  .due{font-family:var(--mono);font-size:11px;color:var(--inkSoft)}
+  .due.late{color:var(--plum)}
+  .row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center}
+  .row input[type=text]{flex:1;min-width:150px}
+  button.act{font-family:var(--mono);font-size:12px;border-radius:3px;cursor:pointer;
+    padding:8px 12px;border:1px solid var(--line);background:#fff;color:var(--ink)}
+  button.solid{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+  button.link{background:none;border:0;font-family:var(--mono);font-size:11px;
+    color:var(--inkSoft);cursor:pointer;padding:0}
+  button.danger{color:var(--plum)}
+  footer{display:flex;gap:16px;align-items:center;margin-top:30px;padding-top:14px;
+    border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;
+    color:var(--faint);flex-wrap:wrap}
+  .empty{padding:44px 18px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--inkSoft)}
+  @media(max-width:640px){h1{font-size:25px}.stats{gap:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">RESEARCH TRACKER</div>
+      <h1 id="title">Projects</h1>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab" data-tab="now">NOW</button>
+    <button class="tab" data-tab="board">BOARD</button>
+    <button class="tab" data-tab="soft">SOFTWARE</button>
+    <button class="tab" data-tab="wf">WORKFLOWS</button>
+    <button class="tab" data-tab="papers">PAPERS</button>
+  </div>
+  <div class="sheet" id="sheet"></div>
+
+  <div id="detail"></div>
+  <div class="row" id="addbar" style="margin-top:18px"></div>
+
+  <footer>
+    <span id="hint"></span>
+    <button class="link" id="snapBtn" style="margin-left:auto">Share snapshot</button>
+    <button class="link" id="allRepBtn">Meeting report</button>
+    <button class="link" id="exportBtn">Export</button>
+    <button class="link" id="importBtn">Import</button>
+    <button class="link danger" id="resetBtn">Reset</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+  </footer>
+</div>
+
+<script>
+/* ================= model ================= */
+const STATES = ["idle","running","done","blocked"];
+const COLOR  = {idle:"#C2CCC5", running:"#B0721A", done:"#14776A", blocked:"#8A3D63"};
+const WORD   = {idle:"Not started", running:"Running", done:"Complete", blocked:"Blocked"};
+const KEY    = "research_tracker_v4";
+
+/* [stage label, default software] */
+const BUILTIN = {
+  "Metagenomics": [
+    ["Sequencing",""], ["QC / trim","Trimmomatic"], ["Assembly","metaSPAdes"],
+    ["Annotation","Bakta"], ["ARG profiling","deepARG + AMR++"],
+    ["Binning","MetaBAT2"], ["Stats","R"], ["Writing",""]],
+  "Amplicon": [
+    ["Sequencing",""], ["Demultiplex","cutadapt"], ["Filter / trim","DADA2"],
+    ["ASV inference","DADA2"], ["Taxonomy","SILVA"], ["Diversity","phyloseq / vegan"],
+    ["Stats","R"], ["Writing",""]],
+  "Institutional study": [
+    ["Concept note",""], ["Ethics / IRB",""], ["Approvals",""],
+    ["Data collection",""], ["Analysis",""], ["Report",""], ["Dissemination",""]],
+  "Field work": [
+    ["Site selection",""], ["Permits / access",""], ["Field sampling",""],
+    ["Sample storage",""], ["Field data entry","ODK / Excel"],
+    ["Lab processing",""], ["Analysis","R / vegan"], ["Writing",""]],
+  "Wet lab": [
+    ["Sampling",""], ["Extraction","DNeasy PowerSoil"], ["DNA QC","Qubit"],
+    ["Library prep","Nextera"], ["Sequencing","NovaSeq"]],
+  "Paper": [
+    ["Outline",""], ["Analysis",""], ["Figures","ggplot2"], ["Draft",""],
+    ["Co-author review",""], ["Submitted",""], ["Revision",""]],
+  "Method dev": [
+    ["Idea",""], ["Prototype","Python"], ["Benchmark",""], ["Validation",""], ["Release","GitHub"]],
+  "Simple": [["To do",""], ["In progress",""], ["Done",""]]
+};
+
+const PKEY = "research_tracker_papers_v1";
+const PFIELDS = [
+  ["title","Paper title"], ["author","First author"], ["other","Other authors"],
+  ["journal","Journal"], ["year","Year"], ["lab","Lab (P.I)"],
+  ["point","Point of the paper"], ["methods","Methods"],
+  ["organism","Model organism"], ["tldr","TL;DR"], ["doi","DOI"]];
+const PORDER = ["title","journal","year","author","other","lab","point","methods","organism","tldr","doi"];
+let PAPERS = [];
+let paperQ = "", openPaper = null;
+function persistPapers(){
+  if (RO) return;
+  try{ localStorage.setItem(PKEY, JSON.stringify(PAPERS)); }
+  catch(e){ console.error("Couldn't save papers:", e); }
+}
+
+const TKEY = "research_tracker_workflows_v1";
+let CUSTOM = {};
+try{ CUSTOM = JSON.parse(localStorage.getItem(TKEY) || "{}") || {}; }catch(e){ CUSTOM = {}; }
+const templates = () => Object.assign({}, BUILTIN, CUSTOM);
+function saveTemplates(){
+  if (RO) return;
+  try{ localStorage.setItem(TKEY, JSON.stringify(CUSTOM)); }
+  catch(e){ console.error("Couldn't save workflows:", e); }
+}
+
+const uid = () => "x" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const mkStages = pairs => pairs.map(p =>
+  ({id:uid(), label:p[0], tool:p[1] || "", status:"idle", since:null}));
+
+function seed(){
+  return [];
+}
+
+/* migrate older saves: keyed stage object (v1/v2) or array without tool (v3) */
+function migrate(list){
+  const OLD = ["Sequencing","QC / trim","Assembly","Annotation","ARG profiling","Stats","Writing"];
+  const KEYS = ["seq","qc","asm","ann","arg","stat","write"];
+  return list.map(p => {
+    let stages;
+    if (Array.isArray(p.stages)){
+      stages = p.stages.map(s => Object.assign({tool:""}, s, {id:s.id || uid()}));
+    } else {
+      stages = KEYS.map((k,i) => Object.assign(
+        {id:uid(), label:OLD[i], tool:""},
+        (p.stages && p.stages[k]) ? p.stages[k] : {status:"idle", since:null}));
+    }
+    return Object.assign({}, p, {
+      id: p.id || uid(),
+      type: p.type || "Metagenomics",
+      milestones: p.milestones || [],
+      stages: stages
+    });
+  });
+}
+
+let RO = false;
+let state = load(), openId = null, tab = "now";
+if (window.__SNAPSHOT_PAPERS__) PAPERS = window.__SNAPSHOT_PAPERS__;
+else { try{ PAPERS = JSON.parse(localStorage.getItem(PKEY) || "[]") || []; }catch(e){ PAPERS = []; } }
+if (window.__SNAPSHOT_WF__) CUSTOM = window.__SNAPSHOT_WF__;
+
+function load(){
+  if (window.__SNAPSHOT__){
+    RO = true;
+    try { return migrate(window.__SNAPSHOT__); } catch(e){ return []; }
+  }
+  try{
+    const raw = localStorage.getItem(KEY) ||
+                localStorage.getItem("research_tracker_v3") ||
+                localStorage.getItem("research_tracker_v1");
+    if (!raw) return seed();
+    const p = JSON.parse(raw);
+    return Array.isArray(p) ? migrate(p) : seed();
+  }catch(e){ console.error("Couldn't read saved data:", e); return seed(); }
+}
+function persist(){
+  if (RO) return;
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch(e){ console.error("Couldn't save:", e); }
+}
+function save(){ persist(); render(); }
+
+/* ================= helpers ================= */
+function elapsed(iso){
+  if (!iso) return "";
+  const h = (Date.now() - new Date(iso)) / 36e5;
+  if (h < 1) return Math.max(1, Math.round(h*60)) + "m";
+  if (h < 48) return h.toFixed(1) + "h";
+  return (h/24).toFixed(1) + "d";
+}
+function esc(s){
+  return String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+    ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+const pct = p => p.stages.length
+  ? Math.round(p.stages.filter(s => s.status === "done").length / p.stages.length * 100) : 0;
+const today = () => new Date().toISOString().slice(0,10);
+const softwareOf = p => [...new Set(p.stages.map(s => (s.tool||"").trim()).filter(Boolean))];
+
+function cycleStage(p, s){
+  s.status = STATES[(STATES.indexOf(s.status) + 1) % STATES.length];
+  s.since = s.status === "running" ? new Date().toISOString() : null;
+  save();
+}
+
+/* ================= render ================= */
+function render(){
+  const t = today();
+  let run=0, blk=0, late=0, open=0;
+  state.forEach(p => {
+    p.stages.forEach(s => { if (s.status==="running") run++; if (s.status==="blocked") blk++; });
+    (p.milestones||[]).forEach(m => { if (!m.done){ open++; if (m.due && m.due < t) late++; } });
+  });
+
+  document.getElementById("title").textContent =
+    state.length + (state.length === 1 ? " project" : " projects");
+  document.getElementById("stats").innerHTML = [
+    ["RUNNING", run, COLOR.running],
+    ["BLOCKED", blk, COLOR.blocked],
+    ["OVERDUE", late, late ? COLOR.blocked : "var(--faint)"],
+    ["OPEN", open, "var(--ink)"]
+  ].map(x => '<div class="stat"><span>'+x[0]+'</span><b style="color:'+x[2]+'">'+x[1]+'</b></div>').join("");
+
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  document.getElementById("hint").textContent =
+    tab === "board" ? "Click a segment to cycle idle \u2192 running \u2192 done \u2192 blocked"
+    : tab === "soft" ? "Every tool on record, and where it's used"
+    : tab === "wf" ? "Workflow templates \u2014 build your own to match how you work"
+    : tab === "papers" ? PAPERS.length + " papers logged"
+    : "Everything in flight, across every project";
+
+  document.getElementById("sheet").innerHTML =
+    tab === "board" ? boardHTML() : tab === "soft" ? softHTML()
+    : tab === "wf" ? wfHTML() : tab === "papers" ? papersHTML() : nowHTML();
+  renderDetail();
+  renderAddBar();
+}
+
+function boardHTML(){
+  if (!state.length) return '<div class="empty">No projects yet.<br><br>Pick a workflow template below and add your first project.</div>';
+  const types = [...new Set(state.map(p => p.type || "Other"))];
+  return types.map(ty => '<div class="grouphead">' + esc(ty) + "</div>" +
+    state.filter(p => (p.type||"Other") === ty).map(laneHTML).join("")).join("");
+}
+
+function laneHTML(p){
+  const segs = p.stages.map(s => {
+    const fg = s.status === "idle" ? "var(--inkSoft)" : "rgba(255,255,255,.95)";
+    return '<button class="seg ' + (s.status==="running" ? "stripe" : "") +
+      '" style="background:' + COLOR[s.status] + '" data-p="' + p.id + '" data-s="' + s.id +
+      '" title="' + esc(s.label) + (s.tool ? " \u2014 " + esc(s.tool) : "") + " \u2014 " + WORD[s.status] + '">' +
+      '<span class="lab" style="color:' + fg + '">' + esc(s.label) + "</span>" +
+      (s.tool ? '<span class="tool" style="color:' + fg + '">' + esc(s.tool) + "</span>" : "") +
+      '<span class="t" style="color:' + fg + '">' + elapsed(s.since) + "</span></button>";
+  }).join("");
+  const runs = p.stages.filter(s => s.status==="running")
+    .map(s => '<span style="color:' + COLOR.running + '">\u25B8 ' + esc(s.label) + " " + elapsed(s.since) + "</span>");
+  const blk = p.stages.filter(s => s.status==="blocked")
+    .map(s => '<span style="color:' + COLOR.blocked + '">\u25A0 ' + esc(s.label) + " blocked</span>");
+  const open = (p.milestones||[]).filter(m => !m.done).length;
+  return '<div class="lane ' + (openId===p.id ? "active" : "") + '">' +
+    '<div class="lane-head">' +
+      '<button class="pname" data-open="' + p.id + '">' + esc(p.name) + "</button>" +
+      (p.site ? '<span class="meta">' + esc(p.site.toUpperCase()) + "</span>" : "") +
+      (p.samples ? '<span class="meta">' + p.samples + " SAMPLES</span>" : "") +
+      (open ? '<span class="meta">' + open + " OPEN</span>" : "") +
+      '<span class="pct">' + pct(p) + "%</span></div>" +
+    '<div class="track">' + segs + "</div>" +
+    ((runs.length||blk.length) ? '<div class="flags">' + runs.concat(blk).join("") + "</div>" : "") +
+  "</div>";
+}
+
+function nowHTML(){
+  const t = today();
+  const running = [], blocked = [], ms = [];
+  state.forEach(p => {
+    p.stages.forEach(s => {
+      if (s.status === "running") running.push({p, s});
+      if (s.status === "blocked") blocked.push({p, s});
+    });
+    (p.milestones||[]).forEach(m => { if (!m.done) ms.push({p, m}); });
+  });
+  running.sort((a,b) => new Date(a.s.since||0) - new Date(b.s.since||0));
+  ms.sort((a,b) => (a.m.due||"9999") < (b.m.due||"9999") ? -1 : 1);
+
+  const row = (proj, st, right, col) =>
+    '<div class="nowrow"><button class="pname" data-open="' + proj.id + '" style="font-size:15px">' +
+      esc(proj.name) + '</button><span class="st">' + esc(st) + "</span>" +
+      '<span class="r" style="color:' + (col || "var(--inkSoft)") + '">' + esc(right) + "</span></div>";
+
+  return '<div class="grouphead">Running now</div><div class="nowsec">' +
+    (running.length ? running.map(x => row(x.p, x.s.label + (x.s.tool ? " \u00b7 " + x.s.tool : ""),
+        elapsed(x.s.since), COLOR.running)).join("")
+      : '<div class="meta" style="padding:8px 0">Nothing running.</div>') + "</div>" +
+    '<div class="grouphead">Blocked</div><div class="nowsec">' +
+    (blocked.length ? blocked.map(x => row(x.p, x.s.label, "blocked", COLOR.blocked)).join("")
+      : '<div class="meta" style="padding:8px 0">Nothing blocked.</div>') + "</div>" +
+    '<div class="grouphead">Open milestones</div><div class="nowsec">' +
+    (ms.length ? ms.map(x => row(x.p, x.m.text,
+        x.m.due ? (x.m.due < t ? "overdue " + x.m.due : x.m.due) : "no date",
+        x.m.due && x.m.due < t ? COLOR.blocked : null)).join("")
+      : '<div class="meta" style="padding:8px 0">No open milestones.</div>') + "</div>";
+}
+
+function softHTML(){
+  const map = {};
+  state.forEach(p => p.stages.forEach(s => {
+    const t = (s.tool||"").trim();
+    if (!t) return;
+    (map[t] = map[t] || []).push(p.name + " \u2014 " + s.label);
+  }));
+  const names = Object.keys(map).sort((a,b) => a.toLowerCase() < b.toLowerCase() ? -1 : 1);
+  if (!names.length) return '<div class="empty">No software recorded yet. Add tool names on a project\u2019s stages.</div>';
+  return '<div class="grouphead">' + names.length + " tools on record</div><div class=\"nowsec\">" +
+    names.map(n =>
+      '<div class="nowrow"><span style="font-family:var(--mono);font-size:13px">' + esc(n) + "</span>" +
+      '<span class="st">' + esc(map[n].join("; ")) + "</span></div>").join("") +
+    '<div class="row"><button class="act" id="copySoft">Copy software list</button></div></div>';
+}
+
+
+function wfHTML(){
+  const all = templates();
+  const rowFor = (name, custom) => {
+    const stages = all[name];
+    const preview = stages.map(s => s[0] + (s[1] ? " (" + s[1] + ")" : "")).join("  \u203a  ");
+    const used = state.filter(p => p.type === name).length;
+    return '<div class="nowrow"><span style="font-family:var(--serif);font-size:15px">' +
+      esc(name) + "</span>" +
+      '<span class="st">' + stages.length + " stages" +
+      (used ? " \u00b7 " + used + " project" + (used>1?"s":"") : "") + "</span>" +
+      (custom && !RO ? '<span class="r"><button class="link danger" data-wfdel="' +
+        esc(name) + '">delete</button></span>' : "") +
+      '<div style="flex-basis:100%;font-family:var(--mono);font-size:10px;color:var(--faint);' +
+      'margin-top:3px">' + esc(preview) + "</div></div>";
+  };
+  const customNames = Object.keys(CUSTOM);
+  let h = '<div class="grouphead">Built in</div><div class="nowsec">' +
+    Object.keys(BUILTIN).map(n => rowFor(n, false)).join("") + "</div>" +
+    '<div class="grouphead">Your workflows</div><div class="nowsec">' +
+    (customNames.length ? customNames.map(n => rowFor(n, true)).join("")
+      : '<div class="meta" style="padding:8px 0">None yet. Build one below.</div>') + "</div>";
+  if (!RO){
+    h += '<div class="grouphead">New workflow</div><div class="nowsec">' +
+      '<div class="row"><input type="text" id="wfName" placeholder="Workflow name, e.g. Bird survey" ' +
+        'style="font-family:var(--serif);font-size:15px;min-width:220px"></div>' +
+      '<textarea id="wfStages" rows="7" style="margin-top:8px;font-family:var(--mono);font-size:12px" ' +
+        'placeholder="One stage per line. Add software after a pipe:\n\nSite selection\nPermits / access\nField sampling\nData entry | ODK\nAnalysis | R / vegan\nWriting"></textarea>' +
+      '<div class="row"><button class="act solid" id="wfAdd">Add workflow</button>' +
+      '<span class="meta">Existing projects keep their own stages.</span></div></div>';
+  }
+  return h;
+}
+
+function parseStages(text){
+  return text.split("\n").map(l => l.trim()).filter(Boolean)
+    .map(l => { const i = l.indexOf("|");
+      return i < 0 ? [l, ""] : [l.slice(0,i).trim(), l.slice(i+1).trim()]; });
+}
+
+
+/* ================= papers ================= */
+function paperMatch(p, q){
+  if (!q) return true;
+  q = q.toLowerCase();
+  return PORDER.some(k => String(p[k] || "").toLowerCase().indexOf(q) >= 0);
+}
+
+function paperRows(){
+  const list = PAPERS.filter(p => paperMatch(p, paperQ));
+  if (!list.length)
+    return '<div class="meta" style="padding:10px 0">' +
+      (PAPERS.length ? "Nothing matches that search." : "No papers logged yet.") + "</div>";
+  return list.map(p => {
+    const meta = [p.author, p.journal, p.year, p.lab].filter(Boolean).join("  \u00b7  ");
+    const body = openPaper === p.id
+      ? '<div style="flex-basis:100%;margin-top:10px">' +
+          PFIELDS.map(f => {
+            const long = ["point","methods","tldr"].indexOf(f[0]) >= 0;
+            return '<div style="margin-bottom:8px">' +
+              '<div class="meta" style="margin-bottom:3px">' + f[1].toUpperCase() + "</div>" +
+              (long
+                ? '<textarea rows="3" data-pf="' + p.id + "|" + f[0] + '">' + esc(p[f[0]] || "") + "</textarea>"
+                : '<input type="text" style="width:100%" data-pf="' + p.id + "|" + f[0] +
+                  '" value="' + esc(p[f[0]] || "") + '">') + "</div>";
+          }).join("") +
+          '<div class="row"><button class="link danger" data-pdel="' + p.id + '">Delete paper</button></div>' +
+        "</div>"
+      : (p.tldr ? '<div style="flex-basis:100%;font-size:12px;color:var(--inkSoft);margin-top:3px">' +
+          esc(p.tldr) + "</div>" : "");
+    return '<div class="nowrow">' +
+      '<button class="pname" data-paper="' + p.id + '" style="font-size:15px;flex:1;min-width:200px">' +
+        esc(p.title || "(untitled)") + "</button>" +
+      (meta ? '<span class="st">' + esc(meta) + "</span>" : "") +
+      body + "</div>";
+  }).join("");
+}
+
+function renderPaperList(){
+  const el = document.getElementById("plist");
+  if (el) el.innerHTML = paperRows();
+}
+
+
+/* ---------- CrossRef lookup ---------- */
+function crossrefToPaper(msg){
+  const auth = msg.author || [];
+  const nm = a => [a.family, a.given].filter(Boolean).join(", ") || a.name || "";
+  const yr = (msg.issued && msg.issued["date-parts"] && msg.issued["date-parts"][0]
+    && msg.issued["date-parts"][0][0]) ||
+    (msg["published-print"] && msg["published-print"]["date-parts"] &&
+     msg["published-print"]["date-parts"][0][0]) || "";
+  return {
+    title: (msg.title && msg.title[0]) || "",
+    journal: (msg["container-title"] && msg["container-title"][0]) || msg.publisher || "",
+    year: String(yr || ""),
+    author: auth.length ? nm(auth[0]) : "",
+    other: auth.length > 1 ? auth.slice(1, -1).map(nm).filter(Boolean).join("; ") : "",
+    lab: auth.length > 1 ? nm(auth[auth.length - 1]) : "",
+    doi: msg.DOI || ""
+  };
+}
+
+function doiLookup(){
+  const raw = (document.getElementById("pDoi").value || "").trim();
+  if (!raw){ alert("Enter a DOI, or a title to search for."); return; }
+  const st = document.getElementById("pDoiStatus");
+  const doi = raw.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").replace(/^doi:\s*/i, "");
+  const looksDoi = /^10\.\d{4,9}\//.test(doi);
+  const url = looksDoi
+    ? "https://api.crossref.org/works/" + encodeURIComponent(doi)
+    : "https://api.crossref.org/works?rows=5&select=DOI,title,author,container-title,issued,publisher&query.bibliographic=" +
+      encodeURIComponent(raw);
+  st.textContent = looksDoi ? "Looking up DOI\u2026" : "Searching titles\u2026";
+
+  fetch(url, {headers:{"Accept":"application/json"}})
+    .then(r => { if (!r.ok) throw new Error("CrossRef returned " + r.status); return r.json(); })
+    .then(j => {
+      if (looksDoi){
+        addFetched(crossrefToPaper(j.message));
+        st.textContent = "";
+      } else {
+        const items = (j.message && j.message.items) || [];
+        if (!items.length){ st.textContent = "No matches."; return; }
+        window.__HITS__ = items.map(crossrefToPaper);
+        st.innerHTML = "<div style=\"margin-top:6px\">" + window.__HITS__.map((p,i) =>
+          '<div style="padding:4px 0"><button class="link" data-hit="' + i +
+          '" style="color:var(--ink);text-align:left">' + esc(p.title) + "</button>" +
+          '<div class="meta">' + esc([p.author, p.journal, p.year].filter(Boolean).join(" \u00b7 ")) +
+          "</div></div>").join("") + "</div>";
+      }
+    })
+    .catch(err => {
+      st.textContent = "Lookup failed: " + err.message +
+        ". Needs an internet connection; some browsers block this when the file is opened directly \u2014 " +
+        "try hosting it, or fill the fields by hand.";
+    });
+}
+
+function addFetched(rec){
+  if (!rec.title){ alert("No title came back for that record."); return; }
+  // drop the result into the add form so you can add your own notes before saving
+  PORDER.forEach(k => {
+    const el = document.getElementById("np_" + k);
+    if (el) el.value = rec[k] || "";
+  });
+  const st = document.getElementById("pDoiStatus");
+  if (st) st.textContent = "Filled the form below \u2014 add your notes, then Add paper.";
+  const f = document.getElementById("np_point");
+  if (f) f.scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+function papersHTML(){
+  let h = '<div class="grouphead">Literature log</div><div class="nowsec">' +
+    '<div class="row"><input type="text" id="pq" placeholder="Search title, author, journal, methods\u2026" ' +
+      'value="' + esc(paperQ) + '" style="flex:1">' +
+      '<button class="act" id="pTsv">Copy as TSV</button></div>' +
+    '<div id="plist" style="margin-top:6px">' + paperRows() + "</div></div>";
+  if (!RO){
+    h += '<div class="grouphead">Look up by DOI or title</div><div class="nowsec">' +
+      '<div class="row"><input type="text" id="pDoi" style="flex:1;min-width:220px" ' +
+        'placeholder="10.1038/s41380-021-01372-y  or a paper title">' +
+      '<button class="act solid" id="pFetch">Fetch</button></div>' +
+      '<div class="meta" id="pDoiStatus" style="margin-top:6px"></div>' +
+      '<div class="meta" style="margin-top:8px">Fills title, journal, year and authors from CrossRef. ' +
+      'The reading notes stay yours to write.</div></div>';
+    h += '<div class="grouphead">Add by hand</div><div class="nowsec">' +
+      PFIELDS.map(f => {
+        const long = ["point","methods","tldr"].indexOf(f[0]) >= 0;
+        return '<div style="margin-bottom:8px">' +
+          '<div class="meta" style="margin-bottom:3px">' + f[1].toUpperCase() + "</div>" +
+          (long
+            ? '<textarea rows="3" id="np_' + f[0] + '"></textarea>'
+            : '<input type="text" style="width:100%" id="np_' + f[0] + '"' +
+              (f[0] === "title" ? ' placeholder="Required"' : "") + ">") + "</div>";
+      }).join("") +
+      '<div class="row"><button class="act solid" id="pAdd">Add paper</button>' +
+      '<button class="link" id="pClear">Clear form</button></div>' +
+      '<div class="meta" style="margin-top:18px">OR PASTE ROWS FROM EXCEL \u2014 ' +
+        esc(PORDER.join(" / ")) + "</div>" +
+      '<textarea id="pPaste" rows="4" style="margin-top:6px;font-family:var(--mono);font-size:11px" ' +
+        'placeholder="Copy cells from the spreadsheet and paste here. A header row is skipped automatically."></textarea>' +
+      '<div class="row"><button class="act" id="pImport">Add pasted rows</button></div></div>';
+  }
+  return h;
+}
+
+function parsePaste(text){
+  const out = [];
+  text.split("\n").forEach(line => {
+    if (!line.trim()) return;
+    const cells = line.split("\t");
+    if ((cells[0] || "").trim().toLowerCase() === "paper title") return;
+    const rec = {id: uid()};
+    PORDER.forEach((k, i) => { rec[k] = (cells[i] || "").trim(); });
+    if (rec.title) out.push(rec);
+  });
+  return out;
+}
+
+function papersTSV(){
+  return [PORDER.map(k => PFIELDS.find(f => f[0] === k)[1]).join("\t")]
+    .concat(PAPERS.map(p => PORDER.map(k => String(p[k] || "").replace(/[\t\n]/g, " ")).join("\t")))
+    .join("\n");
+}
+
+function renderDetail(){
+  const host = document.getElementById("detail");
+  const p = state.find(x => x.id === openId);
+  if (!p){ host.innerHTML = ""; return; }
+  const t = today();
+
+  const rows = p.stages.map((s,i) =>
+    '<tr draggable="true" data-idx="' + i + '">' +
+    '<td class="mv"><button data-mv="' + i + '" data-dir="-1" title="Move up"' +
+      (i === 0 ? " disabled" : "") + ">\u25B4</button>" +
+      '<button data-mv="' + i + '" data-dir="1" title="Move down"' +
+      (i === p.stages.length-1 ? " disabled" : "") + ">\u25BE</button></td>" +
+    '<td class="dt"><button class="dotbtn" data-cyc="' + s.id + '" title="' + WORD[s.status] +
+      ' \u2014 click to change"><span class="dot" style="background:' + COLOR[s.status] + '"></span></button></td>' +
+    '<td data-ren="' + s.id + '" style="cursor:text">' + esc(s.label) + "</td>" +
+    '<td class="sw ' + (s.tool ? "" : "none") + '" data-tool="' + s.id + '">' +
+      esc(s.tool || "add software") + "</td>" +
+    '<td class="el">' + elapsed(s.since) + "</td>" +
+    '<td class="x"><button class="link danger" data-sdel="' + s.id + '">\u00d7</button></td></tr>').join("");
+
+  const ml = (p.milestones||[]).map(m =>
+    '<div class="ms ' + (m.done ? "done" : "") + '">' +
+      '<input type="checkbox" data-ms="' + m.id + '" ' + (m.done ? "checked" : "") + ">" +
+      '<span class="txt">' + esc(m.text) + "</span>" +
+      (m.due ? '<span class="due ' + (!m.done && m.due < t ? "late" : "") + '">' + esc(m.due) + "</span>" : "") +
+      '<button class="link danger" data-msdel="' + m.id + '">remove</button></div>').join("")
+    || '<div class="meta" style="padding:8px 0">Nothing tracked yet.</div>';
+
+  const sw = softwareOf(p);
+
+  host.innerHTML = '<div class="panel">' +
+    '<div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start">' +
+      '<div><div style="font-family:var(--serif);font-size:21px">' + esc(p.name) + "</div>" +
+      '<div class="meta">' + esc(p.type||"") + (p.site ? " \u00b7 " + esc(p.site) : "") +
+        (p.samples ? " \u00b7 " + p.samples + " samples" : "") + " \u00b7 " + pct(p) + "%</div></div>" +
+      '<button class="link" id="closeDetail">close</button></div>' +
+    "<h3>NOTES</h3>" +
+    '<textarea id="noteBox" rows="3" placeholder="Blockers, thresholds, decisions.">' + esc(p.note) + "</textarea>" +
+    "<h3>STAGES &amp; SOFTWARE</h3><table class=\"stab\"><tbody>" + rows + "</tbody></table>" +
+    '<div class="row"><input type="text" id="stgText" placeholder="Stage name">' +
+      '<input type="text" id="stgTool" placeholder="Software (optional)" style="font-family:var(--mono);font-size:12px">' +
+      '<button class="act" id="stgAdd">Add stage</button></div>' +
+    (sw.length ? '<div class="meta" style="margin-top:10px">SOFTWARE: ' + esc(sw.join(", ")) + "</div>" : "") +
+    "<h3>MILESTONES</h3>" + ml +
+    '<div class="row"><input type="text" id="msText" placeholder="New milestone">' +
+      '<input type="date" id="msDue" style="font-family:var(--mono);font-size:12px">' +
+      '<button class="act" id="msAdd">Add milestone</button></div>' +
+    '<div class="row" style="margin-top:22px">' +
+      '<button class="act" id="repBtn">Report for supervisor</button>' +
+      '<button class="act" id="mdBtn">Copy as text</button>' +
+      '<button class="act" id="tplBtn">Save as workflow</button>' +
+      '<button class="link danger" id="delProject" style="margin-left:auto">Delete project</button></div>' +
+  "</div>";
+
+  document.getElementById("closeDetail").onclick = () => { openId = null; render(); };
+
+  /* drag to reorder stages */
+  const tbl = host.querySelector("table.stab");
+  if (tbl){
+    let from = null;
+    tbl.addEventListener("dragstart", e => {
+      const tr = e.target.closest("tr[data-idx]");
+      if (!tr) return;
+      from = +tr.dataset.idx;
+      tr.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      try { e.dataTransfer.setData("text/plain", String(from)); } catch(err){}
+    });
+    tbl.addEventListener("dragover", e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const tr = e.target.closest("tr[data-idx]");
+      tbl.querySelectorAll("tr.over").forEach(r => r.classList.remove("over"));
+      if (tr) tr.classList.add("over");
+    });
+    tbl.addEventListener("dragleave", e => {
+      const tr = e.target.closest("tr[data-idx]");
+      if (tr) tr.classList.remove("over");
+    });
+    tbl.addEventListener("drop", e => {
+      e.preventDefault();
+      const tr = e.target.closest("tr[data-idx]");
+      if (!tr || from === null) return;
+      const to = +tr.dataset.idx;
+      if (to === from) { render(); return; }
+      const moved = p.stages.splice(from, 1)[0];
+      p.stages.splice(to, 0, moved);
+      from = null;
+      save();
+    });
+    tbl.addEventListener("dragend", () => {
+      tbl.querySelectorAll(".dragging,.over").forEach(r => r.classList.remove("dragging","over"));
+      from = null;
+    });
+  }
+  document.getElementById("noteBox").oninput = e => { p.note = e.target.value; persist(); };
+  document.getElementById("stgAdd").onclick = () => {
+    const v = document.getElementById("stgText").value.trim();
+    if (!v) return;
+    p.stages.push({id:uid(), label:v, tool:document.getElementById("stgTool").value.trim(),
+      status:"idle", since:null});
+    save();
+  };
+  document.getElementById("msAdd").onclick = () => {
+    const v = document.getElementById("msText").value.trim();
+    if (!v) return;
+    p.milestones = p.milestones || [];
+    p.milestones.push({id:uid(), text:v, due:document.getElementById("msDue").value, done:false});
+    save();
+  };
+  document.getElementById("repBtn").onclick = () => openReport([p]);
+  document.getElementById("mdBtn").onclick = e => {
+    const txt = toText(p);
+    navigator.clipboard.writeText(txt).then(
+      () => { e.target.textContent = "Copied"; setTimeout(()=>{e.target.textContent="Copy as text";},1500); },
+      () => window.prompt("Copy this:", txt));
+  };
+  document.getElementById("tplBtn").onclick = () => {
+    if (!p.stages.length){ alert("This project has no stages to save."); return; }
+    const n = window.prompt("Name this workflow", p.type + " (custom)");
+    if (!n || !n.trim()) return;
+    CUSTOM[n.trim()] = p.stages.map(s => [s.label, s.tool || ""]);
+    saveTemplates(); tab = "wf"; render();
+  };
+  document.getElementById("delProject").onclick = () => {
+    if (!confirm("Delete " + p.name + "? This can't be undone.")) return;
+    state = state.filter(x => x.id !== p.id); openId = null; save();
+  };
+}
+
+function renderAddBar(){
+  if (RO){
+    document.getElementById("addbar").innerHTML =
+      '<div class="meta" style="padding:8px 0">READ-ONLY SNAPSHOT \u00b7 GENERATED ' +
+      esc(window.__SNAPSHOT_DATE__ || "") + " \u00b7 CHANGES WON'T BE SAVED</div>";
+    return;
+  }
+  const opts = Object.keys(templates()).map(k => '<option value="' + k + '">' + k + "</option>").join("");
+  document.getElementById("addbar").innerHTML =
+    '<input type="text" id="npName" placeholder="Project name" style="font-family:var(--serif);font-size:15px;min-width:190px">' +
+    '<select id="npType">' + opts + "</select>" +
+    '<input type="text" id="npSite" placeholder="Site (optional)" style="max-width:140px">' +
+    '<input type="text" id="npN" placeholder="Samples" style="max-width:84px">' +
+    '<button class="act solid" id="npAdd">Add project</button>';
+  document.getElementById("npAdd").onclick = () => {
+    const n = document.getElementById("npName").value.trim();
+    if (!n) return;
+    const ty = document.getElementById("npType").value;
+    state.push({id:uid(), name:n, type:ty,
+      site:document.getElementById("npSite").value.trim(),
+      samples:Number(document.getElementById("npN").value) || 0,
+      note:"", stages:mkStages(templates()[ty]), milestones:[]});
+    save();
+  };
+}
+
+/* ================= reports ================= */
+function toText(p){
+  const L = [p.name, "=".repeat(p.name.length)];
+  L.push([p.type, p.site, p.samples ? p.samples + " samples" : "", pct(p) + "% complete"]
+    .filter(Boolean).join(" \u00b7 "));
+  L.push("As of " + new Date().toLocaleDateString(), "", "WORKFLOW");
+  p.stages.forEach(s => L.push("  " + s.label.padEnd(18) +
+    (s.tool ? s.tool.padEnd(20) : "".padEnd(20)) + WORD[s.status] +
+    (s.since ? " (" + elapsed(s.since) + ")" : "")));
+  const sw = softwareOf(p);
+  if (sw.length) L.push("", "SOFTWARE", "  " + sw.join(", "));
+  const ms = p.milestones || [];
+  if (ms.length){
+    L.push("", "MILESTONES");
+    ms.forEach(m => L.push("  [" + (m.done ? "x" : " ") + "] " + m.text + (m.due ? "  due " + m.due : "")));
+  }
+  if ((p.note||"").trim()) L.push("", "NOTES", "  " + p.note.trim().replace(/\n/g, "\n  "));
+  return L.join("\n");
+}
+
+function reportBody(p){
+  const t = today();
+  const rows = p.stages.map(s =>
+    "<tr><td>" + esc(s.label) + "</td><td><i>" + esc(s.tool || "") +
+    '</i></td><td><span class="pill" style="background:' + COLOR[s.status] + '"></span>' +
+    WORD[s.status] + "</td><td>" + (s.since ? elapsed(s.since) : "") + "</td></tr>").join("");
+  const ms = p.milestones || [];
+  const list = ms.length
+    ? "<ul>" + ms.filter(m=>!m.done).map(m => "<li>" + esc(m.text) +
+        (m.due ? ' <em>' + (m.due < t ? "overdue " : "due ") + esc(m.due) + "</em>" : "") + "</li>").join("") +
+      ms.filter(m=>m.done).map(m => '<li class="done">' + esc(m.text) + "</li>").join("") + "</ul>"
+    : '<p class="muted">None recorded.</p>';
+  const sw = softwareOf(p);
+  return "<section><h2>" + esc(p.name) + "</h2>" +
+    '<p class="sub">' + [esc(p.type), esc(p.site), p.samples ? p.samples + " samples" : "",
+      pct(p) + "% complete"].filter(Boolean).join(" &middot; ") + "</p>" +
+    "<h3>Workflow</h3><table><thead><tr><th>Stage</th><th>Software</th><th>Status</th><th>Elapsed</th></tr></thead>" +
+    "<tbody>" + rows + "</tbody></table>" +
+    (sw.length ? "<h3>Software</h3><p>" + esc(sw.join(", ")) + "</p>" : "") +
+    "<h3>Milestones</h3>" + list +
+    ((p.note||"").trim() ? "<h3>Notes</h3><p>" + esc(p.note.trim()).replace(/\n/g,"<br>") + "</p>" : "") +
+  "</section>";
+}
+
+function openReport(list){
+  const w = window.open("", "_blank");
+  if (!w){ alert("Your browser blocked the report window. Allow pop-ups for this page and try again."); return; }
+  const title = list.length === 1 ? list[0].name : "Research projects";
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + esc(title) + "</title><style>" +
+    "body{font-family:'Iowan Old Style',Palatino,Georgia,serif;color:#16242B;max-width:660px;margin:48px auto;padding:0 24px;line-height:1.55}" +
+    "h1{font-size:26px;margin:0 0 2px}" +
+    ".date{font-family:ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.1em;color:#8FA09A;text-transform:uppercase;margin-bottom:26px}" +
+    "h2{font-size:20px;margin:34px 0 2px;border-bottom:2px solid #16242B;padding-bottom:6px}" +
+    "h3{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.16em;color:#8FA09A;text-transform:uppercase;margin:20px 0 6px;font-weight:400}" +
+    ".sub{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#5A6D74;margin:6px 0 0}" +
+    "table{border-collapse:collapse;width:100%;font-size:14px}" +
+    "td,th{text-align:left;padding:5px 8px 5px 0;border-bottom:1px solid #E3E9E3}" +
+    "th{font-family:ui-monospace,Menlo,monospace;font-size:10px;letter-spacing:.1em;color:#8FA09A;font-weight:400}" +
+    "td i{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:#5A6D74;font-style:normal}" +
+    ".pill{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}" +
+    "ul{padding-left:18px;margin:4px 0}li{margin:3px 0}li.done{color:#8FA09A;text-decoration:line-through}" +
+    ".muted{color:#8FA09A}em{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#5A6D74;font-style:normal}" +
+    "#pr{position:fixed;top:16px;right:16px;font-family:ui-monospace,Menlo,monospace;font-size:12px;padding:8px 12px;border:1px solid #CBD5CE;background:#fff;border-radius:3px;cursor:pointer}" +
+    "@media print{#pr{display:none}body{margin:0}}</style></head><body>" +
+    '<button id="pr" onclick="window.print()">Save as PDF</button><h1>' + esc(title) + "</h1>" +
+    '<div class="date">Progress report &middot; ' + new Date().toLocaleDateString() + "</div>" +
+    list.map(reportBody).join("") + "</body></html>");
+  w.document.close();
+}
+
+/* ================= events ================= */
+document.addEventListener("click", e => {
+  const tb = e.target.closest(".tab");
+  if (tb){ tab = tb.dataset.tab; render(); return; }
+
+  if (RO){
+    const op0 = e.target.closest("[data-open]");
+    if (op0){ openId = openId === op0.dataset.open ? null : op0.dataset.open; render(); }
+    if (e.target.id === "closeDetail"){ openId = null; render(); }
+    return;
+  }
+
+  if (e.target.id === "copySoft"){
+    const lines = [];
+    state.forEach(p => { const s = softwareOf(p); if (s.length) lines.push(p.name + ": " + s.join(", ")); });
+    navigator.clipboard.writeText(lines.join("\n")).then(
+      () => { e.target.textContent = "Copied"; setTimeout(()=>render(),1500); },
+      () => window.prompt("Copy this:", lines.join("\n")));
+    return;
+  }
+
+  const pop = e.target.closest("[data-paper]");
+  if (pop){
+    openPaper = openPaper === pop.dataset.paper ? null : pop.dataset.paper;
+    renderPaperList(); return;
+  }
+  if (e.target.id === "pTsv"){
+    const t = papersTSV();
+    navigator.clipboard.writeText(t).then(
+      () => { e.target.textContent = "Copied"; setTimeout(()=>{e.target.textContent="Copy as TSV";},1500); },
+      () => window.prompt("Copy this:", t));
+    return;
+  }
+  if (RO) { /* fall through to read-only guard below */ }
+  if (e.target.id === "pFetch"){ doiLookup(); return; }
+  const hit = e.target.closest("[data-hit]");
+  if (hit){ addFetched(window.__HITS__[+hit.dataset.hit]); return; }
+  if (e.target.id === "pAdd"){
+    const rec = {id: uid()};
+    PORDER.forEach(k => {
+      const el = document.getElementById("np_" + k);
+      rec[k] = el ? el.value.trim() : "";
+    });
+    if (!rec.title){ alert("A paper title is required."); return; }
+    PAPERS.unshift(rec); persistPapers(); render(); return;
+  }
+  if (e.target.id === "pClear"){
+    PORDER.forEach(k => {
+      const el = document.getElementById("np_" + k);
+      if (el) el.value = "";
+    });
+    return;
+  }
+  if (e.target.id === "pImport"){
+    const rows = parsePaste(document.getElementById("pPaste").value || "");
+    if (!rows.length){ alert("No rows found. Paste tab-separated cells copied from the spreadsheet."); return; }
+    PAPERS = rows.concat(PAPERS); persistPapers(); render();
+    return;
+  }
+  const pdel = e.target.closest("[data-pdel]");
+  if (pdel){
+    const p = PAPERS.find(x => x.id === pdel.dataset.pdel);
+    if (confirm("Delete \"" + (p.title || "this paper") + "\"?")){
+      PAPERS = PAPERS.filter(x => x.id !== pdel.dataset.pdel);
+      openPaper = null; persistPapers(); render();
+    }
+    return;
+  }
+
+  if (e.target.id === "wfAdd"){
+    const n = (document.getElementById("wfName").value || "").trim();
+    const st = parseStages(document.getElementById("wfStages").value || "");
+    if (!n){ alert("Give the workflow a name."); return; }
+    if (!st.length){ alert("Add at least one stage, one per line."); return; }
+    if (BUILTIN[n]){ alert("That name is taken by a built-in workflow. Pick another."); return; }
+    CUSTOM[n] = st; saveTemplates(); render(); return;
+  }
+  const wfd = e.target.closest("[data-wfdel]");
+  if (wfd){
+    const n = wfd.dataset.wfdel;
+    if (confirm("Delete the " + n + " workflow? Projects already using it keep their stages.")){
+      delete CUSTOM[n]; saveTemplates(); render();
+    }
+    return;
+  }
+
+  const seg = e.target.closest(".seg[data-s]");
+  if (seg){
+    const p = state.find(x => x.id === seg.dataset.p);
+    cycleStage(p, p.stages.find(x => x.id === seg.dataset.s));
+    return;
+  }
+  const mv = e.target.closest("[data-mv]");
+  if (mv){
+    const p = state.find(x => x.id === openId);
+    const i = +mv.dataset.mv, j = i + (+mv.dataset.dir);
+    if (j < 0 || j >= p.stages.length) return;
+    const t = p.stages[i]; p.stages[i] = p.stages[j]; p.stages[j] = t;
+    save(); return;
+  }
+  const cyc = e.target.closest("[data-cyc]");
+  if (cyc){
+    const p = state.find(x => x.id === openId);
+    cycleStage(p, p.stages.find(x => x.id === cyc.dataset.cyc));
+    return;
+  }
+  const tool = e.target.closest("[data-tool]");
+  if (tool){
+    const p = state.find(x => x.id === openId);
+    const s = p.stages.find(x => x.id === tool.dataset.tool);
+    const v = window.prompt("Software used for " + s.label, s.tool || "");
+    if (v !== null){ s.tool = v.trim(); save(); }
+    return;
+  }
+  const ren = e.target.closest("[data-ren]");
+  if (ren){
+    const p = state.find(x => x.id === openId);
+    const s = p.stages.find(x => x.id === ren.dataset.ren);
+    const v = window.prompt("Rename stage", s.label);
+    if (v && v.trim()){ s.label = v.trim(); save(); }
+    return;
+  }
+  const sdel = e.target.closest("[data-sdel]");
+  if (sdel){
+    const p = state.find(x => x.id === openId);
+    p.stages = p.stages.filter(x => x.id !== sdel.dataset.sdel);
+    save(); return;
+  }
+  const msdel = e.target.closest("[data-msdel]");
+  if (msdel){
+    const p = state.find(x => x.id === openId);
+    p.milestones = p.milestones.filter(m => m.id !== msdel.dataset.msdel);
+    save(); return;
+  }
+  const op = e.target.closest("[data-open]");
+  if (op){
+    openId = openId === op.dataset.open ? null : op.dataset.open;
+    render();
+    const d = document.getElementById("detail");
+    if (openId && d) d.scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+});
+
+document.addEventListener("input", e => {
+  if (e.target.id === "pq"){ paperQ = e.target.value; renderPaperList(); return; }
+  const pf = e.target.closest("[data-pf]");
+  if (pf && !RO){
+    const parts = pf.dataset.pf.split("|");
+    const p = PAPERS.find(x => x.id === parts[0]);
+    if (p){ p[parts[1]] = e.target.value; persistPapers(); }
+  }
+});
+
+document.addEventListener("change", e => {
+  const cb = e.target.closest("[data-ms]");
+  if (cb){
+    const p = state.find(x => x.id === openId);
+    const m = p.milestones.find(m => m.id === cb.dataset.ms);
+    m.done = cb.checked; save();
+  }
+});
+
+document.getElementById("snapBtn").onclick = () => {
+  if (!state.length){ alert("Add a project first."); return; }
+  // Take this page's own source and inject the current data ahead of the app
+  // script, so the shared file needs no browser storage and no server.
+  const src = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+  const data = JSON.stringify(state).replace(/</g, "\\u003c");
+  const stamp = new Date().toLocaleString();
+  const papers = JSON.stringify(PAPERS).replace(/</g, "\\u003c");
+  const wfs = JSON.stringify(CUSTOM).replace(/</g, "\\u003c");
+  const inject = "<scr" + "ipt>window.__SNAPSHOT__=" + data +
+    ";window.__SNAPSHOT_PAPERS__=" + papers +
+    ";window.__SNAPSHOT_WF__=" + wfs +
+    ";window.__SNAPSHOT_DATE__=" + JSON.stringify(stamp) + ";</scr" + "ipt>\n";
+  const i = src.indexOf("<scr" + "ipt>");
+  if (i < 0){ alert("Couldn't build the snapshot from this page."); return; }
+  const out = src.slice(0, i) + inject + src.slice(i);
+  const b = new Blob([out], {type:"text/html"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b);
+  a.download = "tracker_snapshot_" + today() + ".html";
+  a.click();
+};
+document.getElementById("allRepBtn").onclick = () => {
+  if (!state.length){ alert("Add a project first."); return; }
+  openReport(state);
+};
+document.getElementById("exportBtn").onclick = () => {
+  const b = new Blob([JSON.stringify({projects:state, workflows:CUSTOM, papers:PAPERS}, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b);
+  a.download = "research_tracker_" + today() + ".json";
+  a.click();
+};
+document.getElementById("importBtn").onclick = () => document.getElementById("importFile").click();
+document.getElementById("importFile").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const d = JSON.parse(r.result);
+      if (Array.isArray(d)){
+        state = migrate(d);
+      } else if (d && Array.isArray(d.projects)){
+        state = migrate(d.projects);
+        if (d.workflows && typeof d.workflows === "object"){
+          CUSTOM = d.workflows; saveTemplates();
+        }
+        if (Array.isArray(d.papers)){ PAPERS = d.papers; persistPapers(); }
+      } else throw new Error("that file isn't a tracker export");
+      openId = null; save();
+    }catch(err){ alert("Import failed: " + err.message); }
+  };
+  r.readAsText(f);
+};
+document.getElementById("resetBtn").onclick = () => {
+  if (confirm("Reset to the starting projects? Your edits will be lost.")){
+    state = seed(); openId = null; save();
+  }
+};
+
+setInterval(() => {
+  if (state.some(p => p.stages.some(s => s.status === "running"))) render();
+}, 60000);
+
+render();
+</script>
+</body>
+</html>
